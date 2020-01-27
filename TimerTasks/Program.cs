@@ -28,10 +28,10 @@ namespace TimerTasks
         public void Test1()
         {
             using TimerTask oneShot = new TimerTask(MyAction1, oneShotSystemCts.Token);
-            oneShot.Start(TimeSpan.FromSeconds(5));
+            _ = oneShot.StartAsync(TimeSpan.FromSeconds(5));
 
             using TimerTask periodic = new TimerTask(MyAction2, periodicSystemCts.Token);
-            periodic.Start(TimeSpan.FromSeconds(1), true);
+            _ = periodic.StartAsync(TimeSpan.FromSeconds(1), true);
 
             Console.WriteLine("Press p/q to cancel periodic, s/o to cancel OneShot, cancel/stop or any other key to exit.");
 

@@ -15,7 +15,6 @@ namespace TimerTasks
     /// </summary>
     public class TimerTask : IDisposable
     {
-        private Task _timerTask;
         private CancellationTokenSource _localCts;
         private readonly CancellationToken _systemToken;
         private readonly Action _action;
@@ -32,18 +31,13 @@ namespace TimerTasks
             _action = action;
         }
 
-        public void Start(TimeSpan period, bool periodic = false)
-        {
-            _timerTask = StartAsync(period, periodic);
-        }
-
         /// <summary>
         /// Start the timer running and call the action when timer fires
         /// </summary>
         /// <param name="period">The length of time before the timer fires</param>
         /// <param name="periodic">true: repeat timing after it fires; false: one shot</param>
         /// <returns></returns>
-        public async Task StartAsync(TimeSpan period, bool periodic)
+        public async Task StartAsync(TimeSpan period, bool periodic = false)
         {
             _localCts = new CancellationTokenSource();
             using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_localCts.Token, _systemToken);
@@ -60,16 +54,9 @@ namespace TimerTasks
         /// <summary>
         /// Stops timer
         /// </summary>
-        public async void Stop()
+        public void Stop()
         {
             _localCts?.Cancel();
-            try
-            {
-                await _timerTask;
-            }
-            catch (TaskCanceledException)
-            {
-            }
         }
 
         /// <summary>
@@ -89,7 +76,7 @@ namespace TimerTasks
             {
                 if (disposing)
                 {
-                    Stop();
+                    _localCts?.Cancel();
                     _localCts?.Dispose();
                 }
 
