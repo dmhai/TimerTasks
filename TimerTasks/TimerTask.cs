@@ -39,12 +39,22 @@ namespace TimerTasks
         /// <returns></returns>
         public async Task StartAsync(TimeSpan period, bool periodic = false)
         {
+            // If this timer is already running, stop before restarting
+            if (_localCts != null && !_localCts.Token.IsCancellationRequested)
+                Stop();
+
             _localCts = new CancellationTokenSource();
             using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_localCts.Token, _systemToken);
 
             do
             {
-                await Task.Delay(period, linkedCts.Token);
+                try
+                {
+                    await Task.Delay(period, linkedCts.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                }
 
                 if (!linkedCts.Token.IsCancellationRequested)
                     _action();
@@ -56,7 +66,8 @@ namespace TimerTasks
         /// </summary>
         public void Stop()
         {
-            _localCts?.Cancel();
+            if (!_disposed)
+                _localCts?.Cancel();
         }
 
         /// <summary>
